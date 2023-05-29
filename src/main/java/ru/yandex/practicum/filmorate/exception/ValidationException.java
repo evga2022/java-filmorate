@@ -1,12 +1,12 @@
 package ru.yandex.practicum.filmorate.exception;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.ToString;
 
 @AllArgsConstructor
 @ToString
-@Data
-public class ValidationException extends Exception {
+@Getter
+public class ValidationException extends RuntimeException {
     String message;
 }

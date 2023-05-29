@@ -17,7 +17,7 @@ public class UserController extends AbstractController<User> {
 
     @Override
     @PostMapping
-    public User create(@RequestBody User newUser) throws ValidationException {
+    public User create(@RequestBody User newUser) {
         if (newUser.getName() == null || newUser.getName().isEmpty()) {
             newUser.setName(newUser.getLogin());
         }

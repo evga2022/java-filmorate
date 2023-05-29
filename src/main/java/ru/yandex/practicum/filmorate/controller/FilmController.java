@@ -20,6 +20,7 @@ public class FilmController extends AbstractController<Film> {
         return "фильм";
     }
 
+    @Override
     protected ValidationException doValidate(Film film) {
         if (film.getName() == null || film.getName().isEmpty()) {
             return new ValidationException("Название не может быть пустым");

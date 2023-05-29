@@ -23,7 +23,7 @@ public abstract class AbstractController<T extends HasId> {
     }
 
     @PostMapping
-    public T create(@RequestBody T newObject) throws ValidationException {
+    public T create(@RequestBody T newObject) {
         if (newObject.getId() == null) {
             newObject.setId(currentNextId);
         }
@@ -35,7 +35,7 @@ public abstract class AbstractController<T extends HasId> {
     }
 
     @PutMapping
-    public T update(@RequestBody T updatedObject) throws ValidationException, NotFoundException {
+    public T update(@RequestBody T updatedObject) {
         validate(updatedObject);
         if (!objectStore.containsKey(updatedObject.getId())) {
             log.debug("Не найден {} с таким ИД: {}", getTitle(), updatedObject.getId());
@@ -48,7 +48,7 @@ public abstract class AbstractController<T extends HasId> {
 
     protected abstract String getTitle();
 
-    protected void validate(T validatedObject) throws ValidationException {
+    protected void validate(T validatedObject) {
         ValidationException validationException = doValidate(validatedObject);
         if (validationException != null) {
             log.debug("Непройдена валидация для: {}, сгенерировано исключение: {}", validatedObject, validationException);
