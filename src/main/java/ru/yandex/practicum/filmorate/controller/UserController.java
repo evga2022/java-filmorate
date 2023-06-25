@@ -1,27 +1,54 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/users")
 @Slf4j
 public class UserController extends AbstractController<User> {
 
-    @Override
-    @PostMapping
-    public User create(@RequestBody User newUser) {
-        if (newUser.getName() == null || newUser.getName().isEmpty()) {
-            newUser.setName(newUser.getLogin());
-        }
-        return super.create(newUser);
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        super(userService);
+        this.userService = userService;
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getFriendsByUserId(@PathVariable("id") Integer userId) {
+        trowIfUserNotExist(userId);
+        return userService.getFriendsByUserId(userId);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(@PathVariable("id") Integer userId, @PathVariable("otherId") Integer otherId) {
+        trowIfUserNotExist(userId);
+        trowIfUserNotExist(otherId);
+        return userService.getCommonFriends(userId, otherId);
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriendship(@PathVariable("id") Integer userId, @PathVariable("friendId") Integer friendId) {
+        trowIfUserNotExist(userId);
+        trowIfUserNotExist(friendId);
+        userService.addFriendship(userId, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void removeFriendship(@PathVariable("id") Integer userId, @PathVariable("friendId") Integer friendId) {
+        trowIfUserNotExist(userId);
+        trowIfUserNotExist(friendId);
+        userService.removeFriendship(userId, friendId);
     }
 
     @Override
@@ -41,5 +68,12 @@ public class UserController extends AbstractController<User> {
             return new ValidationException("Дата рождения не может быть в будущем");
         }
         return super.doValidate(user);
+    }
+
+    private void trowIfUserNotExist(Integer id){
+        if (userService.getById(id) == null) {
+            log.debug("Не найден пользователь с таким ИД: {}", id);
+            throw new NotFoundException();
+        }
     }
 }

@@ -1,49 +1,58 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.HasId;
+import ru.yandex.practicum.filmorate.service.AbstractService;
 
-import java.util.HashMap;
 import java.util.List;
 
 @Slf4j
 public abstract class AbstractController<T extends HasId> {
-    private final HashMap<Integer, T> objectStore = new HashMap<>();
-    private int currentNextId = 1;
+    private final AbstractService<T> abstractService;
+
+    protected AbstractController(AbstractService<T> abstractService) {
+        this.abstractService = abstractService;
+    }
 
     @GetMapping
     public List<T> findAll() {
-        return List.copyOf(objectStore.values());
+        return abstractService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public T getById(@PathVariable("id") Integer id) {
+        T result = abstractService.getById(id);
+        if (result == null) {
+            log.debug("Не найден {} с таким ИД: {}", getTitle(), id);
+            throw new NotFoundException();
+        }
+        return result;
     }
 
     @PostMapping
     public T create(@RequestBody T newObject) {
-        if (newObject.getId() == null) {
-            newObject.setId(currentNextId);
-        }
         validate(newObject);
         log.debug("Новый {}: {}", getTitle(), newObject);
-        objectStore.put(newObject.getId(), newObject);
-        currentNextId++;
-        return newObject;
+        return abstractService.create(newObject);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable("id") Integer id) {
+        abstractService.delete(id);
     }
 
     @PutMapping
     public T update(@RequestBody T updatedObject) {
         validate(updatedObject);
-        if (!objectStore.containsKey(updatedObject.getId())) {
+        if (abstractService.getById(updatedObject.getId()) == null) {
             log.debug("Не найден {} с таким ИД: {}", getTitle(), updatedObject.getId());
             throw new NotFoundException();
         }
         log.debug("Обновлен {}: {}", getTitle(), updatedObject);
-        objectStore.put(updatedObject.getId(), updatedObject);
-        return updatedObject;
+        return abstractService.update(updatedObject);
     }
 
     protected abstract String getTitle();
@@ -56,8 +65,6 @@ public abstract class AbstractController<T extends HasId> {
         }
     }
 
-    ;
-
     /**
      * Функция должна вернуть null если объект валидный, и ValidationException для невалидных объектов
      *
@@ -65,9 +72,6 @@ public abstract class AbstractController<T extends HasId> {
      * @return возвращает null для валидных объектов
      */
     protected ValidationException doValidate(T validatedObject) {
-        if (validatedObject.getId() == null) {
-            return new ValidationException("ИД не может быть пустым");
-        }
         return null;
     }
 }
