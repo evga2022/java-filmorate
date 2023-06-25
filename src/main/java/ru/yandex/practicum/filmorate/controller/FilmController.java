@@ -30,14 +30,14 @@ public class FilmController extends AbstractController<Film> {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public void addUserLikeToFilm(@PathVariable("userId")Integer userId, @PathVariable("id") Integer filmId) {
+    public void addUserLikeToFilm(@PathVariable("userId") Integer userId, @PathVariable("id") Integer filmId) {
         trowIfUserNotExist(userId);
         trowIfFilmNotExist(filmId);
         filmService.addUserLikeToFilm(userId, filmId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void removeUserLikeFromFilm(@PathVariable("userId")Integer userId, @PathVariable("id") Integer filmId) {
+    public void removeUserLikeFromFilm(@PathVariable("userId") Integer userId, @PathVariable("id") Integer filmId) {
         trowIfUserNotExist(userId);
         trowIfFilmNotExist(filmId);
         filmService.removeUserLikeFromFilm(userId, filmId);
@@ -70,14 +70,14 @@ public class FilmController extends AbstractController<Film> {
         return super.doValidate(film);
     }
 
-    private void trowIfUserNotExist(Integer id){
+    private void trowIfUserNotExist(Integer id) {
         if (userService.getById(id) == null) {
             log.debug("Не найден пользователь с таким ИД: {}", id);
             throw new NotFoundException();
         }
     }
 
-    private void trowIfFilmNotExist(Integer id){
+    private void trowIfFilmNotExist(Integer id) {
         if (filmService.getById(id) == null) {
             log.debug("Не найден фильм с таким ИД: {}", id);
             throw new NotFoundException();

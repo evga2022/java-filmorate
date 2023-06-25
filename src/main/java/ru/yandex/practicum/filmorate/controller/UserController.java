@@ -70,7 +70,7 @@ public class UserController extends AbstractController<User> {
         return super.doValidate(user);
     }
 
-    private void trowIfUserNotExist(Integer id){
+    private void trowIfUserNotExist(Integer id) {
         if (userService.getById(id) == null) {
             log.debug("Не найден пользователь с таким ИД: {}", id);
             throw new NotFoundException();
