@@ -22,13 +22,13 @@ public class FilmController extends AbstractController<Film> {
 
     @PutMapping("/{id}/like/{userId}")
     public void addUserLikeToFilm(@PathVariable("userId") Integer userId, @PathVariable("id") Integer filmId) {
-        log.debug("Пользователь с ИД {} добавил лайк к фильму с ИД {}",userId, filmId);
+        log.debug("Пользователь с ИД {} добавил лайк к фильму с ИД {}", userId, filmId);
         filmService.addUserLikeToFilm(userId, filmId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public void removeUserLikeFromFilm(@PathVariable("userId") Integer userId, @PathVariable("id") Integer filmId) {
-        log.debug("Пользователь с ИД {} убрал лайк к фильму с ИД {}",userId, filmId);
+        log.debug("Пользователь с ИД {} убрал лайк к фильму с ИД {}", userId, filmId);
         filmService.removeUserLikeFromFilm(userId, filmId);
     }
 
