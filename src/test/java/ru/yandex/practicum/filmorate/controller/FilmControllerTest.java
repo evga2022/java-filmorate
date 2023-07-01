@@ -31,8 +31,7 @@ class FilmControllerTest {
     @BeforeEach
     void setUp() throws ValidationException {
         UserService userService = new UserService(new InMemoryUserStorage(new InMemoryLikeStorage(), new InMemoryFriendsStorage()));
-        controller = new FilmController(new FilmService(new InMemoryFilmStorage(new InMemoryLikeStorage())),
-                userService);
+        controller = new FilmController(new FilmService(userService, new InMemoryFilmStorage(new InMemoryLikeStorage())));
         defaultFilm = Film.builder()
                 .description("Веселый фильм")
                 .name("Ёлочка")
