@@ -1,45 +1,48 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/users")
 @Slf4j
 public class UserController extends AbstractController<User> {
 
-    @Override
-    @PostMapping
-    public User create(@RequestBody User newUser) {
-        if (newUser.getName() == null || newUser.getName().isEmpty()) {
-            newUser.setName(newUser.getLogin());
-        }
-        return super.create(newUser);
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        super(userService);
+        this.userService = userService;
     }
 
-    @Override
-    protected String getTitle() {
-        return "пользователь";
+    @GetMapping("/{id}/friends")
+    public List<User> getFriendsByUserId(@PathVariable("id") Integer userId) {
+        log.debug("Список друзей пользователя с ИД {}", userId);
+        return userService.getFriendsByUserId(userId);
     }
 
-    @Override
-    protected ValidationException doValidate(User user) {
-        if (user.getEmail() == null || user.getEmail().isEmpty() || !user.getEmail().contains("@")) {
-            return new ValidationException("Электронная почта не может быть пустой и должна содержать символ @");
-        }
-        if (user.getLogin() == null || user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
-            return new ValidationException("Логин не может быть пустым и содержать пробелы");
-        }
-        if (user.getBirthday() != null && user.getBirthday().isAfter(LocalDate.now())) {
-            return new ValidationException("Дата рождения не может быть в будущем");
-        }
-        return super.doValidate(user);
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(@PathVariable("id") Integer userId, @PathVariable("otherId") Integer otherId) {
+        log.debug("Список общих друзей пользователей с ИД {} и {}", userId, otherId);
+        return userService.getCommonFriends(userId, otherId);
     }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriendship(@PathVariable("id") Integer userId, @PathVariable("friendId") Integer friendId) {
+        log.debug("Пользователь с ИД {} добавляет в друзья пользователя с ИД {}", userId, friendId);
+        userService.addFriendship(userId, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void removeFriendship(@PathVariable("id") Integer userId, @PathVariable("friendId") Integer friendId) {
+        log.debug("Пользователь с ИД {} удаляет из друзей пользователя с ИД {}", userId, friendId);
+        userService.removeFriendship(userId, friendId);
+    }
+
 }

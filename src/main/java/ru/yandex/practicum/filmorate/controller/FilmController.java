@@ -1,39 +1,41 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/films")
 @Slf4j
 public class FilmController extends AbstractController<Film> {
-    private static final int MAX_DESCRIPTION_LENGTH = 200;
-    private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
+    private final FilmService filmService;
 
-    @Override
-    protected String getTitle() {
-        return "фильм";
+    @Autowired
+    public FilmController(FilmService filmService) {
+        super(filmService);
+        this.filmService = filmService;
     }
 
-    @Override
-    protected ValidationException doValidate(Film film) {
-        if (film.getName() == null || film.getName().isEmpty()) {
-            return new ValidationException("Название не может быть пустым");
-        }
-        if (film.getDescription() != null && film.getDescription().length() > MAX_DESCRIPTION_LENGTH) {
-            return new ValidationException("Максимальная длина описания — 200 символов");
-        }
-        if (film.getReleaseDate() != null && film.getReleaseDate().isBefore(MIN_RELEASE_DATE)) {
-            return new ValidationException("Дата релиза — не раньше 28 декабря 1895 года");
-        }
-        if (film.getDuration() <= 0) {
-            return new ValidationException("Продолжительность фильма должна быть положительной");
-        }
-        return super.doValidate(film);
+    @PutMapping("/{id}/like/{userId}")
+    public void addUserLikeToFilm(@PathVariable("userId") Integer userId, @PathVariable("id") Integer filmId) {
+        log.debug("Пользователь с ИД {} добавил лайк к фильму с ИД {}", userId, filmId);
+        filmService.addUserLikeToFilm(userId, filmId);
     }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void removeUserLikeFromFilm(@PathVariable("userId") Integer userId, @PathVariable("id") Integer filmId) {
+        log.debug("Пользователь с ИД {} убрал лайк к фильму с ИД {}", userId, filmId);
+        filmService.removeUserLikeFromFilm(userId, filmId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getFilmsByLikes(@RequestParam(name = "count", defaultValue = "10") Integer count) {
+        log.debug("Возврат первых {} фильмов по количеству лайков", count);
+        return filmService.getFilmsByLikes(0, count);
+    }
+
 }
