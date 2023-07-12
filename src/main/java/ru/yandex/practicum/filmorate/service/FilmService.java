@@ -2,13 +2,18 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -20,7 +25,7 @@ public class FilmService extends AbstractService<Film> {
     private final FilmStorage storage;
 
     @Autowired
-    public FilmService(UserService userService, FilmStorage storage) {
+    public FilmService(@Qualifier("userDbStorage") UserService userService, @Qualifier("filmDbStorage") FilmStorage storage) {
         super(storage);
         this.userService = userService;
         this.storage = storage;
@@ -72,5 +77,31 @@ public class FilmService extends AbstractService<Film> {
     private void trowIfFilmNotExist(Integer id) {
         // Метод getById(id) выкинет исключение если не будет фильма с таким ИД, лог тоже внутри метода getById(id)
         getById(id);
+    }
+
+    public List<Genre> getAllGenres() {
+        return storage.getAllGenres();
+    }
+
+    public Genre getGenreById(Integer id){
+        Optional<Genre> result = storage.getGenreById(id);
+        if (result.isEmpty()) {
+            log.debug("Не найден {} с таким ИД: {}", getTitle(), id);
+            throw new NotFoundException();
+        }
+        return result.get();
+    }
+
+    public List<Mpa> getAllMpa() {
+        return storage.getAllMpa();
+    }
+
+    public Mpa getMpaById(Integer id){
+        Optional<Mpa> result = storage.getMpaById(id);
+        if (result.isEmpty()) {
+            log.debug("Не найден {} с таким ИД: {}", getTitle(), id);
+            throw new NotFoundException();
+        }
+        return result.get();
     }
 }

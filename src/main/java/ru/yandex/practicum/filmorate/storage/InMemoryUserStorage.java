@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -29,7 +30,7 @@ public class InMemoryUserStorage extends InMemoryAbstractStorage<User> implement
     @Override
     public List<User> getFriendsByUserId(Integer id) {
         return friendsStorage.getAllFriendIdsByUserId(id).stream()
-                .map(super::getById).sorted(Comparator.comparing(User::getId)).collect(Collectors.toList());
+                .map(super::getById).map(Optional::get).sorted(Comparator.comparing(User::getId)).collect(Collectors.toList());
     }
 
     @Override
@@ -37,6 +38,7 @@ public class InMemoryUserStorage extends InMemoryAbstractStorage<User> implement
         List<Integer> userFriends = friendsStorage.getAllFriendIdsByUserId(userId);
         List<Integer> otherFriends = friendsStorage.getAllFriendIdsByUserId(otherId);
         return userFriends.stream().filter(otherFriends::contains).map(super::getById)
+                .map(Optional::get)
                 .sorted(Comparator.comparing(User::getId)).collect(Collectors.toList());
     }
 

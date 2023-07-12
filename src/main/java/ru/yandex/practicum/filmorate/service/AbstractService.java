@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.model.HasId;
 import ru.yandex.practicum.filmorate.storage.AbstractStorage;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Slf4j
@@ -35,12 +36,12 @@ public abstract class AbstractService<T extends HasId> {
     }
 
     public T getById(Integer id) {
-        T result = storage.getById(id);
-        if (result == null) {
+        Optional<T> result = storage.getById(id);
+        if (result.isEmpty()) {
             log.debug("Не найден {} с таким ИД: {}", getTitle(), id);
             throw new NotFoundException();
         }
-        return result;
+        return result.get();
     }
 
     public void delete(Integer id) {
