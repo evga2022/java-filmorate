@@ -2,20 +2,20 @@ package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
-@Qualifier("filmDbStorage")
+@Primary
 public class FilmDbStorage extends AbstractDbStorage<Film> implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final RowMapper<Film> mapper;
@@ -35,28 +35,27 @@ public class FilmDbStorage extends AbstractDbStorage<Film> implements FilmStorag
 
     @Override
     public Film create(Film newObject) {
-        String sql = "INSERT INTO " + getResourceName() + "(name, description, release_date, mpa_id, duration) " +
-                "VALUES(?, ?, ?, ?, ?) RETURNING " + getResourceIdName();
-        List<Integer> insertedIds = jdbcTemplate.query(sql,
-                Arrays.asList(newObject.getName(),
-                        newObject.getDescription(), newObject.getReleaseDate(),
-                        newObject.getMpa().getId(), newObject.getDuration()).toArray(), new int[0],
-                new RowMapper<Integer>() {
-                    @Override
-                    public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return rs.getInt(getResourceIdName());
-                    }
-                });
-        addAllFilmGenres(newObject.getGenres(), insertedIds.get(0));
-        return getById(insertedIds.get(0)).orElseThrow();
+        SimpleJdbcInsert simpleJdbcInsert =
+                new SimpleJdbcInsert(jdbcTemplate).withTableName(getResourceName())
+                        .usingGeneratedKeyColumns(getResourceIdName());
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("name", newObject.getName());
+        parameters.put("mpa_id", newObject.getMpa().getId());
+        parameters.put("description", newObject.getDescription());
+        parameters.put("release_date", java.sql.Date.valueOf(newObject.getReleaseDate()));
+        parameters.put("duration", newObject.getDuration());
+        Integer key = simpleJdbcInsert.executeAndReturnKey(parameters).intValue();
+        addAllFilmGenres(newObject.getGenres(), key);
+        return getById(key).orElseThrow();
     }
 
     @Override
     public Optional<Film> getById(Integer id) {
         String sql = "SELECT f.*, m.mpa_id, m.name AS mpa_name FROM "
                 + getResourceName() + " AS f " +
-                "LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id AND "
-                + getResourceIdName() + " = ? ";
+                "LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id " +
+                "WHERE " + getResourceIdName() + " = ? ";
         List<Film> result = jdbcTemplate.query(sql, mapper, id);
         if (!result.isEmpty()) {
             return Optional.of(populateFilm(result.get(0)));
@@ -71,15 +70,16 @@ public class FilmDbStorage extends AbstractDbStorage<Film> implements FilmStorag
     }
 
     private List<Genre> findGenresByFilmId(Integer id) {
-        String sql = "SELECT * FROM genre WHERE film_id = ?";
+        String sql = "SELECT DISTINCT(g.genre_id), g.name FROM genre AS g " +
+                " JOIN film_genres AS fg ON g.genre_id = fg.genre_id AND fg.film_id = ?";
         return jdbcTemplate.query(sql, genreMapper, id);
     }
 
     @Override
     public Film update(Film updatedObject) {
         String sql = "UPDATE " + getResourceName() +
-                "SET name = ?, description = ?, release_date = ?, mpa_id = ?, duration = ? " +
-                "WHERE " + getResourceIdName() + " = ?";
+                " SET name = ?, description = ?, release_date = ?, mpa_id = ?, duration = ? " +
+                " WHERE " + getResourceIdName() + " = ?";
         jdbcTemplate.update(sql, updatedObject.getName(),
                 updatedObject.getDescription(), updatedObject.getReleaseDate(),
                 updatedObject.getMpa().getId(), updatedObject.getDuration(), updatedObject.getId());
@@ -140,7 +140,7 @@ public class FilmDbStorage extends AbstractDbStorage<Film> implements FilmStorag
 
     @Override
     public List<Film> getFilmsByLikes(Integer from, Integer limit) {
-        String sql = "SELECT f.*, m.mpa_id, m.name AS mpa_name, COUNT(ff.favorite_films_id) AS likes FROM film AS f " +
+        String sql = "SELECT f.*, m.mpa_id, m.name AS mpa_name, COUNT(DISTINCT(ff.user_id)) AS likes FROM film AS f " +
                 "LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id " +
                 "LEFT JOIN favorite_films AS ff ON f.film_id = ff.film_id " +
                 "GROUP BY f.FILM_ID " +
@@ -172,12 +172,12 @@ public class FilmDbStorage extends AbstractDbStorage<Film> implements FilmStorag
     }
 
     public List<Mpa> getAllMpa() {
-        String sql = "SELECT * FROM genre ";
+        String sql = "SELECT * FROM mpa ";
         return jdbcTemplate.query(sql, mpaMapper);
     }
 
     public Optional<Mpa> getMpaById(Integer id) {
-        String sql = "SELECT * FROM genre WHERE genre_id = ?";
+        String sql = "SELECT * FROM mpa WHERE mpa_id = ?";
         List<Mpa> result = jdbcTemplate.query(sql, mpaMapper, id);
         if (!result.isEmpty()) {
             return Optional.of(result.get(0));

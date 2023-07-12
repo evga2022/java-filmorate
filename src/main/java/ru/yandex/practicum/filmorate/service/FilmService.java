@@ -25,7 +25,8 @@ public class FilmService extends AbstractService<Film> {
     private final FilmStorage storage;
 
     @Autowired
-    public FilmService(@Qualifier("userDbStorage") UserService userService, @Qualifier("filmDbStorage") FilmStorage storage) {
+    public FilmService(UserService userService,
+                       FilmStorage storage) {
         super(storage);
         this.userService = userService;
         this.storage = storage;

@@ -2,8 +2,10 @@ package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.UserMapper;
@@ -11,10 +13,12 @@ import ru.yandex.practicum.filmorate.model.UserMapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
-@Qualifier("userDbStorage")
+@Primary
 public class UserDbStorage extends AbstractDbStorage<User> implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
     private final RowMapper<User> mapper;
@@ -28,26 +32,24 @@ public class UserDbStorage extends AbstractDbStorage<User> implements UserStorag
 
     @Override
     public User create(User newObject) {
-        String sql = "INSERT INTO " + getResourceName() + "(name, email, login, birth_date) " +
-                "VALUES(?, ?, ?, ?, ?) RETURNING " + getResourceIdName();
-        List<Integer> insertedIds = jdbcTemplate.query(sql,
-                Arrays.asList(newObject.getName(),
-                        newObject.getEmail(), newObject.getLogin(),
-                        newObject.getBirthday()).toArray(), new int[0],
-                new RowMapper<Integer>() {
-                    @Override
-                    public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return rs.getInt(getResourceIdName());
-                    }
-                });
-        return super.getById(insertedIds.get(0)).orElseThrow();
+        SimpleJdbcInsert simpleJdbcInsert =
+                new SimpleJdbcInsert(jdbcTemplate).withTableName(getResourceName())
+                        .usingGeneratedKeyColumns(getResourceIdName());
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("name", newObject.getName());
+        parameters.put("email", newObject.getEmail());
+        parameters.put("login", newObject.getLogin());
+        parameters.put("birth_date", java.sql.Date.valueOf(newObject.getBirthday()));
+
+        return super.getById(simpleJdbcInsert.executeAndReturnKey(parameters).intValue()).orElseThrow();
     }
 
     @Override
     public User update(User updatedObject) {
         String sql = "UPDATE " + getResourceName() +
-                "SET email = ?, name = ?, login = ?, birth_date = ? " +
-                "WHERE " + getResourceIdName() + " = ?";
+                " SET email = ?, name = ?, login = ?, birth_date = ? " +
+                " WHERE " + getResourceIdName() + " = ?";
         jdbcTemplate.update(sql, updatedObject.getEmail(),
                 updatedObject.getName(), updatedObject.getLogin(),
                 updatedObject.getBirthday(), updatedObject.getId());
@@ -76,21 +78,21 @@ public class UserDbStorage extends AbstractDbStorage<User> implements UserStorag
     @Override
     public List<User> getFriendsByUserId(Integer id) {
         String sql = "SELECT fu.*, COUNT(fsr.friendships_id) > 0 AS is_friend FROM film_user AS fu " +
-                "JOIN friendships AS fs ON fs.user_right_id = ? AND fu.user_id = fs.user_left_id " +
+                "JOIN friendships AS fs ON fs.user_left_id = ? AND fu.user_id = fs.user_right_id " +
                 "LEFT JOIN friendships AS fsr ON fsr.user_right_id = fs.user_left_id AND fsr.user_left_id = fs.user_right_id " +
                 "GROUP BY fu.user_id " +
-                "ORDER BY fu.name ";
+                "ORDER BY fu.user_id ";
         return jdbcTemplate.query(sql, mapper, id);
     }
 
     @Override
     public List<User> getCommonFriends(Integer userId, Integer otherId) {
         String sql = "SELECT fu.*, COUNT(fsr.friendships_id) > 0 AS is_friend FROM film_user AS fu " +
-                "JOIN friendships AS fs ON fs.user_right_id = ? AND fu.user_id = fs.user_left_id " +
+                "JOIN friendships AS fs ON fs.user_left_id = ? AND fu.user_id = fs.user_right_id " +
                 "LEFT JOIN friendships AS fsr ON fsr.user_right_id = fs.user_left_id AND fsr.user_left_id = fs.user_right_id " +
-                "JOIN friendships AS fso ON fso.user_right_id = ? AND fu.user_id = fso.user_left_id " +
+                "JOIN friendships AS fso ON fso.user_left_id = ? AND fu.user_id = fso.user_right_id " +
                 "GROUP BY fu.user_id " +
-                "ORDER BY fu.name ";
+                "ORDER BY fu.user_id ";
         return jdbcTemplate.query(sql, mapper, userId, otherId);
     }
 

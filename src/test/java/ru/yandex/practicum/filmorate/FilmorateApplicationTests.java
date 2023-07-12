@@ -5,10 +5,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.UserDbStorage;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -20,6 +25,8 @@ class FilmorateApplicationTests {
 
     private final UserDbStorage userStorage;
 
+    private final FilmDbStorage filmDbStorage;
+
     @Test
     public void testFindUserById() {
         User defaultUser = User.builder()
@@ -28,7 +35,9 @@ class FilmorateApplicationTests {
                 .login("defaultUser")
                 .birthday(LocalDate.of(1995, 12, 28))
                 .build();
-        userStorage.create(defaultUser);
+        defaultUser = userStorage.create(defaultUser);
+        defaultUser.setName("Обыватель");
+        userStorage.update(defaultUser);
 
         Optional<User> userOptional = userStorage.getById(1);
 
@@ -36,6 +45,29 @@ class FilmorateApplicationTests {
                 .isPresent()
                 .hasValueSatisfying(user ->
                         assertThat(user).hasFieldOrPropertyWithValue("id", 1)
+                );
+    }
+
+    @Test
+    public void testFindFilmById() {
+        Film defaultFilm = Film.builder()
+                .description("Веселый фильм")
+                .mpa(Mpa.builder().id(1).build())
+                .genres(new ArrayList<>())
+                .name("Ёлочка")
+                .duration(3600)
+                .releaseDate(LocalDate.of(1983, 12, 27)).build();
+        defaultFilm.getGenres().add(Genre.builder().id(1).build());
+        defaultFilm = filmDbStorage.create(defaultFilm);
+        defaultFilm.setName("Веселая братва");
+        filmDbStorage.update(defaultFilm);
+
+        Optional<Film> filmOptional = filmDbStorage.getById(1);
+
+        assertThat(filmOptional)
+                .isPresent()
+                .hasValueSatisfying(film ->
+                        assertThat(film).hasFieldOrPropertyWithValue("id", 1)
                 );
     }
 }

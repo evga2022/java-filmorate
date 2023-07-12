@@ -18,7 +18,7 @@ public class UserService extends AbstractService<User> {
     private final UserStorage storage;
 
     @Autowired
-    public UserService(@Qualifier("userDbStorage") UserStorage storage) {
+    public UserService(UserStorage storage) {
         super(storage);
         this.storage = storage;
     }

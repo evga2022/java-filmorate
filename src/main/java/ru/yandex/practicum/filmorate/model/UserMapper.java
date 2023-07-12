@@ -15,7 +15,7 @@ public class UserMapper implements RowMapper<User> {
                 .email(rs.getString("email"))
                 .name(rs.getString("name"))
                 .birthday(rs.getTimestamp("birth_date").toLocalDateTime().toLocalDate())
-                .isFriend(hasColumn(rs, "is_friend") ? rs.getBoolean("is_friend") : null)
+                .isFriend(hasColumn(rs, "IS_FRIEND") ? rs.getBoolean("is_friend") : null)
                 .build();
     }
 

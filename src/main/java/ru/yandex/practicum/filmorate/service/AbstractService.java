@@ -27,7 +27,7 @@ public abstract class AbstractService<T extends HasId> {
 
     public T update(T updatedObject) {
         validate(updatedObject);
-        if (storage.getById(updatedObject.getId()) == null) {
+        if (storage.getById(updatedObject.getId()).isEmpty()) {
             log.debug("Не найден {} с таким ИД: {}", getTitle(), updatedObject.getId());
             throw new NotFoundException();
         }
