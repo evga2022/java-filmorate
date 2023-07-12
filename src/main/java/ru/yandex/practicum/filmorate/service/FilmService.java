@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -84,7 +83,7 @@ public class FilmService extends AbstractService<Film> {
         return storage.getAllGenres();
     }
 
-    public Genre getGenreById(Integer id){
+    public Genre getGenreById(Integer id) {
         Optional<Genre> result = storage.getGenreById(id);
         if (result.isEmpty()) {
             log.debug("Не найден {} с таким ИД: {}", getTitle(), id);
@@ -97,7 +96,7 @@ public class FilmService extends AbstractService<Film> {
         return storage.getAllMpa();
     }
 
-    public Mpa getMpaById(Integer id){
+    public Mpa getMpaById(Integer id) {
         Optional<Mpa> result = storage.getMpaById(id);
         if (result.isEmpty()) {
             log.debug("Не найден {} с таким ИД: {}", getTitle(), id);
