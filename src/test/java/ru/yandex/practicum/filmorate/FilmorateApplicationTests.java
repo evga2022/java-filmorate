@@ -37,14 +37,14 @@ class FilmorateApplicationTests {
                 .build();
         defaultUser = userStorage.create(defaultUser);
         defaultUser.setName("Обыватель");
-        userStorage.update(defaultUser);
+        final User updatedUser = userStorage.update(defaultUser);
 
-        Optional<User> userOptional = userStorage.getById(1);
+        Optional<User> userOptional = userStorage.getById(updatedUser.getId());
 
         assertThat(userOptional)
                 .isPresent()
                 .hasValueSatisfying(user ->
-                        assertThat(user).hasFieldOrPropertyWithValue("id", 1)
+                        assertThat(user).hasFieldOrPropertyWithValue("id", updatedUser.getId())
                 );
     }
 
@@ -60,14 +60,14 @@ class FilmorateApplicationTests {
         defaultFilm.getGenres().add(Genre.builder().id(1).build());
         defaultFilm = filmDbStorage.create(defaultFilm);
         defaultFilm.setName("Веселая братва");
-        filmDbStorage.update(defaultFilm);
+        final Film updatedFilm = filmDbStorage.update(defaultFilm);
 
-        Optional<Film> filmOptional = filmDbStorage.getById(1);
+        Optional<Film> filmOptional = filmDbStorage.getById(updatedFilm.getId());
 
         assertThat(filmOptional)
                 .isPresent()
                 .hasValueSatisfying(film ->
-                        assertThat(film).hasFieldOrPropertyWithValue("id", 1)
+                        assertThat(film).hasFieldOrPropertyWithValue("id", updatedFilm.getId())
                 );
     }
 }

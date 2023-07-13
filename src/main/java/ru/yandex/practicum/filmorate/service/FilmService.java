@@ -21,30 +21,30 @@ public class FilmService extends AbstractService<Film> {
     private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
     private final UserService userService;
-    private final FilmStorage storage;
+    private final FilmStorage filmStorage;
 
     @Autowired
     public FilmService(UserService userService,
-                       FilmStorage storage) {
-        super(storage);
+                       FilmStorage filmStorage) {
+        super(filmStorage);
         this.userService = userService;
-        this.storage = storage;
+        this.filmStorage = filmStorage;
     }
 
     public void addUserLikeToFilm(Integer userId, Integer filmId) {
         trowIfUserNotExist(userId);
         trowIfFilmNotExist(filmId);
-        storage.addUserLikeToFilm(userId, filmId);
+        filmStorage.addUserLikeToFilm(userId, filmId);
     }
 
     public void removeUserLikeFromFilm(Integer userId, Integer filmId) {
         trowIfUserNotExist(userId);
         trowIfFilmNotExist(filmId);
-        storage.removeUserLikeFromFilm(userId, filmId);
+        filmStorage.removeUserLikeFromFilm(userId, filmId);
     }
 
     public List<Film> getFilmsByLikes(Integer from, Integer limit) {
-        return storage.getFilmsByLikes(from, limit);
+        return filmStorage.getFilmsByLikes(from, limit);
     }
 
     @Override
@@ -80,11 +80,11 @@ public class FilmService extends AbstractService<Film> {
     }
 
     public List<Genre> getAllGenres() {
-        return storage.getAllGenres();
+        return filmStorage.getAllGenres();
     }
 
     public Genre getGenreById(Integer id) {
-        Optional<Genre> result = storage.getGenreById(id);
+        Optional<Genre> result = filmStorage.getGenreById(id);
         if (result.isEmpty()) {
             log.debug("Не найден {} с таким ИД: {}", getTitle(), id);
             throw new NotFoundException();
@@ -93,11 +93,11 @@ public class FilmService extends AbstractService<Film> {
     }
 
     public List<Mpa> getAllMpa() {
-        return storage.getAllMpa();
+        return filmStorage.getAllMpa();
     }
 
     public Mpa getMpaById(Integer id) {
-        Optional<Mpa> result = storage.getMpaById(id);
+        Optional<Mpa> result = filmStorage.getMpaById(id);
         if (result.isEmpty()) {
             log.debug("Не найден {} с таким ИД: {}", getTitle(), id);
             throw new NotFoundException();

@@ -19,9 +19,7 @@ import java.util.stream.Collectors;
 public class FilmDbStorage extends AbstractDbStorage<Film> implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final RowMapper<Film> mapper;
-
     private final RowMapper<Genre> genreMapper;
-
     private final RowMapper<Mpa> mpaMapper;
 
     @Autowired
