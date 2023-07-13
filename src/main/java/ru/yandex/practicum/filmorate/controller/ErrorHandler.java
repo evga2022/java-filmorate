@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestControllerAdvice("ru.yandex.practicum.filmorate.controller")
 @Slf4j
@@ -17,6 +18,13 @@ public class ErrorHandler {
     @ExceptionHandler({NotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleNotFoundException(final RuntimeException e) {
+        log.debug("Не существующий ИД, {}", e.getMessage());
+        return Map.of("error", "Не существующий ИД");
+    }
+
+    @ExceptionHandler({NoSuchElementException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleNoSuchElementException(final RuntimeException e) {
         log.debug("Не существующий ИД, {}", e.getMessage());
         return Map.of("error", "Не существующий ИД");
     }

@@ -13,4 +13,8 @@ public class User implements HasId {
     private String login;
     private String name;
     private LocalDate birthday;
+    /**
+     * Признак того является ли этот пользователь подтвержденным другом
+     */
+    private Boolean isFriend;
 }

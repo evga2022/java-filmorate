@@ -4,6 +4,7 @@ import ru.yandex.practicum.filmorate.model.HasId;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 public class InMemoryAbstractStorage<T extends HasId> implements AbstractStorage<T> {
 
@@ -25,8 +26,8 @@ public class InMemoryAbstractStorage<T extends HasId> implements AbstractStorage
     }
 
     @Override
-    public T getById(Integer id) {
-        return objectStore.get(id);
+    public Optional<T> getById(Integer id) {
+        return Optional.ofNullable(objectStore.get(id));
     }
 
     @Override
