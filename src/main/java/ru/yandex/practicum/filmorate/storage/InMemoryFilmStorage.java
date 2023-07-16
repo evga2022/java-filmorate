@@ -4,10 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.comparator.Comparators;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -42,5 +45,25 @@ public class InMemoryFilmStorage extends InMemoryAbstractStorage<Film> implement
                 .sorted((a, b) -> Comparators.comparable().compare(filmsByLike.getOrDefault(b.getId(),
                         new ArrayList<>()).size(), filmsByLike.getOrDefault(a.getId(), new ArrayList<>()).size()))
                 .skip(from).limit(limit).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Genre> getAllGenres() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<Genre> getGenreById(Integer id) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<Mpa> getAllMpa() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<Mpa> getMpaById(Integer id) {
+        throw new UnsupportedOperationException();
     }
 }
